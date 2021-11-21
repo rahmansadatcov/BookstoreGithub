@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <div align="center" style="font-size:22px">
+        <br>
+        <br>
+    <head>
+        <title>Add Stock</title>
+    </head>
+    <body>
+        <H1>Add Stock!</H1>
+        <!br>
+        <!img moz-do-not-send="true"
+             src="https://annasaxton.com/wp-content/uploads/2019/09/ksenia-makagonova-LuK-MuZ-yf0-unsplash-1024x683.jpg"
+             alt="test image" width="512" height="341">
+        <form action="{{page}}" method="post">
+            <label for="title">Title:</label><br>
+            <input type="text" id="title" name="title"><br><br>
+            <label for="author">Author:</label><br>
+            <input type="text" id="author" name="author"><br><br>
+            <label for="pub_date">Publication date:</label><br>
+            <input type="date" id="pub_date" name="pub_date"><br><br>
+            <label for="isbn13">ISBN 13:</label><br>
+            <input type="number" id="isbn_13" name="isbn_13"><br><br>
+            <label for="description">Book description:</label><br>
+            <textarea id="description" name="description" rows="4" cols="35"></textarea><br><br>
+            <label for="cover">Link for front cover image:</label><br>
+            <input type="text" id="cover" name="cover"><br><br>
+            <label for="retail">Choose retail price:</label><br>   
+            <input type="range" value="50" id="retail" name="retail" min="0" max="100" step="0.01" oninput="this.nextElementSibling.value = this.value">
+            <output>50</output>
+            <br>
+            <label for="trade">Choose trade price:</label><br>   
+            <input type="range" value="50" id="trade" name="trade" min="0" max="100" step="0.01" oninput="this.nextElementSibling.value = this.value">
+            <output>50</output>
+            <br>
+            <label for="qty">Choose quantity:</label><br>
+            <input type="range" value="10" id="qty" name="qty" min="0" max="20" oninput="this.nextElementSibling.value = this.value">
+            <output>10</output>
+            <br>
+            <input type="submit" value="     Add to stock     ">
+        </form>
+        <! Here we need to display all the books currently in stock>
+    </body>
+    </div>
+</html>
