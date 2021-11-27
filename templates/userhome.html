@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <div align="center" style="font-size:22px">
+        <br>
+        <br>
+    <head>
+        <title>Home</title>
+    </head>
+    <body style="background-color:burlywood;">
+        <H1>Home</H1>
+        
+        <form method="post" action="{{url_for('shopping_cart')}}">
+        {% if 'cart_book' in session %}
+        <input type="submit" name= 'submit' value="View shopping basket">
+        <div><img src="{{ url_for('static', filename='cart-icon.png')}}"></div>
+        <div> Total quantity is {{session['total_quantity']}}</div>
+        <div> Total price is £{{session['total_price']}}</div>
+        </form>
+        
+        {% endif %}
+        <br>
+
+        <br>
+        <br>    
+        <br>
+        {% for book in all_books %}
+        <div>
+				<form method="post" action="{{url_for('add_to_cart')}}">
+					<div><img src="{{ url_for('static', filename=book[2])}}" width="100" height="150"></div>
+					<div>{{ book[1] }}</div>
+                    <div>£{{ book[3] }}</div>
+					<input type="hidden" name="isbn_13" value="{{book[0]}}"/>
+					<input type="submit" name= 'submit' value="Add to basket"/>
+				</form>
+			</div>
+        <br><br>
+        {% endfor %}
+    </body>
+    </div>
+</html>
