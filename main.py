@@ -1,14 +1,21 @@
 from flask import Flask
-from markupsafe import escape
 from flask import url_for
 from flask import render_template
 from flask import request
 from flask import redirect
 from flask import abort
 from flask import make_response
+from flask import flash
+from flask import session
+from werkzeug.utils import secure_filename
+from markupsafe import escape
 import sqlite3
+import os
+
 
 app = Flask(__name__)
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+
 
 @app.errorhandler(403)
 def wrong_password(error):
@@ -57,7 +64,7 @@ def do_the_login(u, p):
         cur.close()
         con.close()
         if user_found>0:
-            return f'<H1>You are in user page!</H1>'
+            return redirect(url_for('userhome'))
         else:
             abort(403)
 
@@ -118,8 +125,7 @@ def show_stock_levels_page():
     
     cur.close()
     con.close()
-    
-    return render_template('stocklevels.html', page=url_for("stocklevels"), variable=result)
+    return render_template('stocklevels.html', page=url_for("stocklevels"), all_books=result)
 
 
 @app.route('/addstock', methods=['GET', 'POST'])
@@ -127,14 +133,21 @@ def addstock():
     if request.method == 'GET':
         return show_add_stock_page()
     elif request.method == 'POST':
+        # For some reason the code below gets me a 400 error
+#         image = request.files['image']
+        
+        image_path = "/home/codio/workspace/cover_images/" + request.form["cover"]
+        
         if check_if_exists(request.form['isbn_13']) > 0:
-            return update_stock(request.form['title'], request.form['author'], request.form['pub_date'], request.form['isbn_13'], request.form['retail'], request.form['trade'], request.form['qty'], request.form['cover'], request.form['description'])
+            return update_stock(request.form['title'], request.form['author'], request.form['pub_date'], request.form['isbn_13'], request.form['retail'], request.form['trade'], request.form['qty'], image_path, request.form['description'])
         else:
-            return add_to_stock(request.form['title'], request.form['author'], request.form['pub_date'], request.form['isbn_13'], request.form['retail'], request.form['trade'], request.form['qty'], request.form['cover'], request.form['description'])
+            return add_to_stock(request.form['title'], request.form['author'], request.form['pub_date'], request.form['isbn_13'], request.form['retail'], request.form['trade'], request.form['qty'], image_path, request.form['description'])
 
-def show_add_stock_page(): # make an addstock.html file
+def show_add_stock_page():
     return render_template('addstock.html', page=url_for('addstock'))
-                            
+
+
+
 def check_if_exists(i):
     con = sqlite3.connect('database.db')
     cur = con.cursor()
@@ -146,8 +159,8 @@ def check_if_exists(i):
     con.close()
     return result
 
-
 def update_stock(ti, a, p, i, r, tr, q, c, d):
+    
     con = sqlite3.connect('database.db')
     
     con.execute("UPDATE books SET title = (?), author = (?), pub_date = (?), retail_price = (?), trade_price = (?), qty = (?), cover = (?), description = (?) WHERE isbn_13 = (?)", (ti, a, p, r, tr, q, c, d, i))
@@ -156,10 +169,11 @@ def update_stock(ti, a, p, i, r, tr, q, c, d):
     con.close()
     
     return redirect(url_for('stocklevels'))
-    
-
 
 def add_to_stock(ti, a, p, i, r, tr, q, c, d):
+    
+    save_image()
+    
     con = sqlite3.connect('database.db')
 
     con.execute("INSERT INTO books values(?,?,?,?,?,?,?,?,?);", (i, ti, a, p, r, tr, q, c, d))
@@ -169,14 +183,138 @@ def add_to_stock(ti, a, p, i, r, tr, q, c, d):
     
     return redirect(url_for('stocklevels'))
 
+
+@app.route('/home', methods=['GET'])
+def userhome():
+    if request.method == 'GET':
+        return show_user_home_page()
+#     if request.method == 'POST':
+#         pass
+            
+
+def show_user_home_page():
+    con = sqlite3.connect('database.db')
+    cur = con.cursor()
+
+    cur.execute('SELECT isbn_13, title, cover, retail_price FROM books')
+    result = cur.fetchall()
+
+    cur.close()
+    con.close()
+
+    return render_template('userhome.html', page=url_for('userhome'), all_books=result)
+
+
+@app.route('/addtocart', methods=['POST'])
+def add_to_cart():
+#     try:
+    if request.method == 'POST':
         
         
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+
+        cur.execute('SELECT isbn_13, title, retail_price, cover, qty FROM books WHERE isbn_13=(?);', (request.form["isbn_13"], ))
+        book = cur.fetchone()
+        bookArray = dict()
+        
+        bookArray = {book[0]: {"cover": book[3], "isbn_13": book[0], "retail_price": book[2], "occurence": 1, "qty": book[4], "title": book[1]}}
+        
+        isbn = book[0]
+        price = book[2]
+        
+        total_price = 0
+        total_quantity = 0
+        
+        session.modified = True
+        
+        if 'cart_book' in session:
+            print('cart_book in session')
+            if isbn in session['cart_book']:
+                print('same item in session')
+                session['cart_book'][isbn]['occurence'] = session['cart_book'][isbn]['occurence'] + 1
+            else:
+                print('no same item in session')
+                session['cart_book'] = array_merge(session['cart_book'], bookArray)
+        
+            for key, value in session['cart_book'].items():
+                print('looping through the session to find the total price and quantity')
+                individual_quantity = session['cart_book'][key]['occurence']
+                individual_price = session['cart_book'][key]['retail_price']
+                total_quantity = total_quantity + individual_quantity
+                total_price = total_price + individual_price * individual_quantity
+            
+        else:
+            print('cart_book NOT in session')
+
+
+            session['cart_book'] = bookArray
+            total_price = total_price + price
+            total_quantity = total_quantity + 1
+
+        session['total_quantity'] = round(total_quantity, 2)
+        session['total_price'] = round(total_price, 2)
+        
+                                                                                             
+        cur.close()
+        con.close()
+                                                                                                  
+        return redirect(url_for('userhome'))
+        
+def array_merge( first_array , second_array ):
+	if isinstance( first_array , list ) and isinstance( second_array , list ):
+		return first_array + second_array
+	elif isinstance( first_array , dict ) and isinstance( second_array , dict ):
+		return dict( list( first_array.items() ) + list( second_array.items() ) )
+	elif isinstance( first_array , set ) and isinstance( second_array , set ):
+		return first_array.union( second_array )
+	return False		        
+
+
+@app.route('/shoppingcart', methods=['POST'])
+def shopping_cart():
+    if request.method == 'POST':
+        return show_shopping_cart()
+
+def show_shopping_cart(): 
+    return render_template('shoppingcart.html', page=url_for('shopping_cart'))
+
+@app.route('/emptycart', methods=['POST'])
+def empty_cart():
+    if request.method == 'POST':        
+        session.clear()
+        return redirect(url_for('userhome'))
+
+@app.route('/gobackhome', methods=['POST'])
+def go_back_home():
+    if request.method == 'POST':
+        return show_user_home_page()
+
+@app.route('/deletebook', methods=['POST'])
+def deletebook():
+    print('WORKS 1')
+    if request.method == 'POST':
+        print('WORKS 2')
+        isbn = request.form.get('isbn_13')
+        print('WORKS 3')
+        print('This is the isbn:', isbn)
+        if isbn in session['cart_book']:
+            print('WORKS 4')
+            if len(session['cart_book'].keys()) > 1:
+                session['total_quantity'] = session['total_quantity'] - session['cart_book'][isbn]['occurence']
+                session['total_price'] = round(session['total_price'] - session['total_quantity'] * session['cart_book'][isbn]['retail_price'], 2)
+                del session['cart_book'][isbn]
+                print('item removed')
+                return show_shopping_cart()
+            else:
+                session.clear()
+                print('whole ')
+                return show_user_home_page()
+        print('WORKS 5')
+
         
         
-        
-        
-        
-        
+    
         
         
         

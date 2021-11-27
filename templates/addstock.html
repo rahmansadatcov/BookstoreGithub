@@ -6,7 +6,7 @@
     <head>
         <title>Add Stock</title>
     </head>
-    <body>
+    <body style="background-color:burlywood;">
         <H1>Add Stock!</H1>
         <!br>
         <!img moz-do-not-send="true"
@@ -23,8 +23,8 @@
             <input type="number" id="isbn_13" name="isbn_13"><br><br>
             <label for="description">Book description:</label><br>
             <textarea id="description" name="description" rows="4" cols="35"></textarea><br><br>
-            <label for="cover">Link for front cover image:</label><br>
-            <input type="text" id="cover" name="cover"><br><br>
+            <label for="cover">Cover image:</label><br>
+            <input type="file" id="image" name="image" accept="image/*"><br><br>
             <label for="retail">Choose retail price:</label><br>   
             <input type="range" value="50" id="retail" name="retail" min="0" max="100" step="0.01" oninput="this.nextElementSibling.value = this.value">
             <output>50</output>
@@ -39,7 +39,6 @@
             <br>
             <input type="submit" value="     Add to stock     ">
         </form>
-        <! Here we need to display all the books currently in stock>
     </body>
     </div>
 </html>
