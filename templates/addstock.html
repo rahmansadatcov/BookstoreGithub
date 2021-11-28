@@ -8,11 +8,7 @@
     </head>
     <body style="background-color:burlywood;">
         <H1>Add Stock!</H1>
-        <!br>
-        <!img moz-do-not-send="true"
-             src="https://annasaxton.com/wp-content/uploads/2019/09/ksenia-makagonova-LuK-MuZ-yf0-unsplash-1024x683.jpg"
-             alt="test image" width="512" height="341">
-        <form action="{{page}}" method="post">
+        <form action="{{page}}" method="post" enctype="multipart/form-data">
             <label for="title">Title:</label><br>
             <input type="text" id="title" name="title"><br><br>
             <label for="author">Author:</label><br>
@@ -23,7 +19,7 @@
             <input type="number" id="isbn_13" name="isbn_13"><br><br>
             <label for="description">Book description:</label><br>
             <textarea id="description" name="description" rows="4" cols="35"></textarea><br><br>
-            <label for="cover">Cover image:</label><br>
+            <label for="image">Cover image:</label><br>
             <input type="file" id="image" name="image" accept="image/*"><br><br>
             <label for="retail">Choose retail price:</label><br>   
             <input type="range" value="50" id="retail" name="retail" min="0" max="100" step="0.01" oninput="this.nextElementSibling.value = this.value">
